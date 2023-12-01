@@ -1,0 +1,43 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <openssl/dsa.h>
+#include <openssl/engine.h>
+
+void generate_dsa_key(DSA **dsa) {
+    *dsa = DSA_generate_parameters(2048, NULL, 0, NULL, NULL, NULL, NULL);
+    DSA_generate_key(*dsa);
+}
+
+void sign_data(const char *data, size_t len, DSA *dsa, unsigned char *signature, unsigned int *sig_len) {
+    DSA_sign(0, (const unsigned char *)data, len, signature, sig_len, dsa);
+}
+
+int verify_signature(const char *data, size_t len, DSA *dsa, const unsigned char *signature, unsigned int sig_len) {
+    return DSA_verify(0, (const unsigned char *)data, len, signature, sig_len, dsa);
+}
+
+int main() {
+    DSA *dsa = NULL;
+    const char *data = "Hello, DSA!";
+    unsigned char signature[DSA_size(dsa)];
+    unsigned int sig_len;
+
+    generate_dsa_key(&dsa);
+
+    sign_data(data, strlen(data), dsa, signature, &sig_len);
+
+    int verification_result = verify_signature(data, strlen(data), dsa, signature, sig_len);
+
+    printf("Data: %s\n", data);
+    printf("Signature: ");
+    for (unsigned int i = 0; i < sig_len; ++i) {
+        printf("%02x", signature[i]);
+    }
+    printf("\n");
+    printf("Verification Result: %s\n", verification_result ? "Valid" : "Invalid");
+
+    DSA_free(dsa);
+
+    return 0;
+}

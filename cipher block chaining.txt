@@ -1,0 +1,66 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Function to perform XOR operation on two strings
+void xorStrings(char* a, char* b, char* result, int length) {
+    for (int i = 0; i < length; i++) {
+        result[i] = a[i] ^ b[i];
+    }
+}
+
+// Function to encrypt a block using CBC mode
+void encryptBlock(char* plaintextBlock, char* previousCipherBlock, char* key) {
+    xorStrings(plaintextBlock, previousCipherBlock, plaintextBlock, 16);
+
+    // In a real implementation, you would use a proper encryption function here.
+    // For simplicity, we're just simulating encryption by copying the plaintextBlock to ciphertextBlock.
+    strcpy(previousCipherBlock, plaintextBlock);
+}
+
+int main() {
+    char key[17], iv[17]; // 16 characters for key and IV, plus '\0'
+    char plaintext[100], ciphertext[100];
+    char previousCipherBlock[17] = "InitializationVe"; // IV for the first block
+
+    // Input key
+    printf("Enter the 16-character key: ");
+    fgets(key, sizeof(key), stdin);
+
+    // Input IV (Initialization Vector)
+    printf("Enter the 16-character IV: ");
+    fgets(iv, sizeof(iv), stdin);
+
+    // Input plaintext
+    printf("Enter the plaintext: ");
+    fgets(plaintext, sizeof(plaintext), stdin);
+
+    // Remove newline characters from inputs
+    key[strcspn(key, "\n")] = '\0';
+    iv[strcspn(iv, "\n")] = '\0';
+    plaintext[strcspn(plaintext, "\n")] = '\0';
+
+    // Pad the plaintext with spaces to make it multiple of 16 characters
+    int plaintextLen = strlen(plaintext);
+    int padding = 16 - (plaintextLen % 16);
+    for (int i = 0; i < padding; i++) {
+        plaintext[plaintextLen + i] = ' ';
+    }
+    plaintext[plaintextLen + padding] = '\0';
+
+    // Encrypt each block of plaintext using CBC mode
+    printf("Encrypted Text: ");
+    for (int i = 0; i < strlen(plaintext); i += 16) {
+        char plaintextBlock[17];
+        strncpy(plaintextBlock, plaintext + i, 16);
+        plaintextBlock[16] = '\0';
+
+        encryptBlock(plaintextBlock, previousCipherBlock, key);
+
+        // Print the encrypted block
+        printf("%s", plaintextBlock);
+    }
+    printf("\n");
+
+    return 0;
+}

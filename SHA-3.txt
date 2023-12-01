@@ -1,0 +1,35 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <openssl/sha.h>
+
+void sha3_256(const char *input, size_t len, unsigned char *output) {
+    SHA3_CTX ctx;
+    SHA3_Init(&ctx);
+    SHA3_Update(&ctx, input, len);
+    SHA3_Final(output, &ctx);
+}
+
+int main() {
+    char input[100];
+    unsigned char output[SHA3_256_DIGEST_LENGTH];
+
+    // Input
+    printf("Enter the string to hash: ");
+    fgets(input, sizeof(input), stdin);
+
+    // Remove newline character from input
+    input[strcspn(input, "\n")] = '\0';
+
+    // Compute SHA-3 hash
+    sha3_256(input, strlen(input), output);
+
+    // Output the hash
+    printf("SHA-3 Hash (256 bits): ");
+    for (int i = 0; i < SHA3_256_DIGEST_LENGTH; ++i) {
+        printf("%02x", output[i]);
+    }
+    printf("\n");
+
+    return 0;
+}

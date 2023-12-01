@@ -1,0 +1,49 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <openssl/cmac.h>
+
+void cmac(const char *key, const char *input, size_t len, unsigned char *output) {
+    CMAC_CTX *ctx = CMAC_CTX_new();
+    const EVP_CIPHER *cipher = EVP_aes_128_cbc(); // You can change the cipher as needed
+    size_t key_len = EVP_CIPHER_key_length(cipher);
+
+    CMAC_Init(ctx, key, key_len, cipher, NULL);
+
+    CMAC_Update(ctx, input, len);
+    CMAC_Final(ctx, output, NULL);
+
+    CMAC_CTX_free(ctx);
+}
+
+int main() {
+    char key[17]; // 16 characters for key and '\0'
+    char input[100];
+    unsigned char output[CMAC_MAX_SIZE];
+
+    // Input key
+    printf("Enter the 16-character key: ");
+    fgets(key, sizeof(key), stdin);
+
+    // Remove newline character from key
+    key[strcspn(key, "\n")] = '\0';
+
+    // Input
+    printf("Enter the string to generate CMAC: ");
+    fgets(input, sizeof(input), stdin);
+
+    // Remove newline character from input
+    input[strcspn(input, "\n")] = '\0';
+
+    // Compute CMAC
+    cmac(key, input, strlen(input), output);
+
+    // Output the CMAC
+    printf("CMAC: ");
+    for (int i = 0; i < CMAC_MAX_SIZE; ++i) {
+        printf("%02x", output[i]);
+    }
+    printf("\n");
+
+    return 0;
+}

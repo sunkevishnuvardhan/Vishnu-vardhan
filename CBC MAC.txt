@@ -1,0 +1,69 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <openssl/evp.h>
+
+void cbc_mac(const char *key, const char *input, size_t len, unsigned char *output) {
+    EVP_CIPHER_CTX *ctx;
+    const EVP_CIPHER *cipher = EVP_aes_128_cbc(); // You can change the cipher as needed
+    size_t key_len = EVP_CIPHER_key_length(cipher);
+
+    // Initialize context
+    if (!(ctx = EVP_CIPHER_CTX_new())) {
+        fprintf(stderr, "Error initializing context\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Initialize encryption operation
+    if (!EVP_EncryptInit_ex(ctx, cipher, NULL, key, NULL)) {
+        fprintf(stderr, "Error initializing encryption\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Perform CBC-MAC
+    if (!EVP_EncryptUpdate(ctx, output, (int *)&len, (unsigned char *)input, len)) {
+        fprintf(stderr, "Error performing CBC-MAC\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Finalize CBC-MAC
+    if (!EVP_EncryptFinal_ex(ctx, output, (int *)&len)) {
+        fprintf(stderr, "Error finalizing CBC-MAC\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Clean up
+    EVP_CIPHER_CTX_free(ctx);
+}
+
+int main() {
+    char key[17]; // 16 characters for key and '\0'
+    char input[100];
+    unsigned char output[EVP_MAX_BLOCK_LENGTH];
+
+    // Input key
+    printf("Enter the 16-character key: ");
+    fgets(key, sizeof(key), stdin);
+
+    // Remove newline character from key
+    key[strcspn(key, "\n")] = '\0';
+
+    // Input
+    printf("Enter the string to generate CBC-MAC: ");
+    fgets(input, sizeof(input), stdin);
+
+    // Remove newline character from input
+    input[strcspn(input, "\n")] = '\0';
+
+    // Compute CBC-MAC
+    cbc_mac(key, input, strlen(input), output);
+
+    // Output the CBC-MAC
+    printf("CBC-MAC: ");
+    for (int i = 0; i < EVP_MAX_BLOCK_LENGTH; ++i) {
+        printf("%02x", output[i]);
+    }
+    printf("\n");
+
+    return 0;
+}
